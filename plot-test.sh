@@ -1,0 +1,2 @@
+/usr/local/anaconda2/bin/python -B /Users/haas/Projects/ldndc/toolbox/trunk/kkplot/kkplot.py  --data-dir ./  --providers-dir /Users/haas/Projects/ldndc/toolbox/trunk/kkplot/providers/ --tmp-dir .kkplot-tmp/ --outputs-dir . --output ./gr_thessaly_evaluation.pdf --debug arable/GR_thessaly/plotscripts/kkplot-N-cycle.yaml > plot.py && /usr/local/anaconda2/bin/python plot.py && open ./gr_thessaly_evaluation.pdf
+

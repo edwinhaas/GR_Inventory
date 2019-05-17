@@ -1,0 +1,386 @@
+#/bin/python
+#
+#
+#
+import csv
+import pandas as pd
+import datetime as dt
+
+# Scenario Irrigation
+#scenario = "rainfeed"
+Scenarios = ["irri", "rainfeed"]
+
+yearStart = 2010
+years = 6
+rotations = 5
+
+# File with crop properties
+# DF is a pandas Dataframe
+DFinputCrops = pd.read_csv("GR_thess_crop.csv", sep='\t', index_col=0).fillna('NaN')
+print DFinputCrops
+
+dictFert = {}
+crops = ['sico','wbar','wiwh','cott','perg']
+
+for crop in crops :
+    fertilize = []
+    fertd = DFinputCrops.get_value('Ferti1_date',crop)
+    fertr = DFinputCrops.get_value('Fert1_%',crop)
+    if (fertr > 0.0) : fertilize.append([fertd,fertr])
+    fertd = DFinputCrops.get_value('Fert2_date',crop)
+    fertr = DFinputCrops.get_value('Ferti2_%',crop)
+    if (fertr > 0.0) : fertilize.append([fertd,fertr])
+    fertd = DFinputCrops.get_value('Fert3_date',crop)
+    fertr = DFinputCrops.get_value('Fert3_%',crop)
+    if (fertr > 0.0) : fertilize.append([fertd,fertr])
+    dictFert[crop]=fertilize
+#
+
+dictManure = {}
+
+for crop in crops :
+    manure = []
+    manurd = DFinputCrops.get_value('Manure1_date',crop)
+    manurr = DFinputCrops.get_value('Manure1_rate',crop)
+    if (manurr > 0.0) :
+        manure.append([manurd,manurr])
+    manurd = DFinputCrops.get_value('Manure2_date',crop)
+    manurr = DFinputCrops.get_value('Manure2_rate',crop)
+    if (manurr > 0.0) :
+        manure.append([manurd,manurr])
+    manurd = DFinputCrops.get_value('Manure3_date',crop)
+    manurr = DFinputCrops.get_value('Manure3_rate',crop)
+    if (manurr > 0.0) :
+        manure.append([manurd,manurr])
+    dictManure[crop]= manure
+#
+
+dictCut = {}
+#cutcrops = ['alfa', 'alfalfa1', 'alfalfa2']
+cutcrops = ['perg']
+for crop in cutcrops :
+    cut = []
+    cutd = DFinputCrops.get_value('Cut1_date',crop)
+    if (cutd != 'NaN' ) :
+        cut.append(cutd)
+    dictCut[crop]= cut
+    cutd = DFinputCrops.get_value('Cut2_date',crop)
+    if (cutd != 'NaN' ) :
+        cut.append(cutd)
+    dictCut[crop]= cut
+    cutd = DFinputCrops.get_value('Cut3_date',crop)
+    if (cutd != 'NaN' ) :
+        cut.append(cutd)
+    dictCut[crop]= cut
+    cutd = DFinputCrops.get_value('Cut4_date',crop)
+    if (cutd != 'NaN' ) :
+        cut.append(cutd)
+    dictCut[crop]= cut
+    cutd = DFinputCrops.get_value('Cut5_date',crop)
+    if (cutd != 'NaN' ) :
+        cut.append(cutd)
+    dictCut[crop]= cut
+#
+
+# Irrigation
+dictIrri = {}
+for crop in crops :
+    irri = []
+    #Irri1_date        12.3.2016
+    #Irri1_quan
+    for d in range(1,19) :
+        irriDate = "Irri" + str(d) + "_date"
+        irriQuan = "Irri" + str(d) + "_quan"
+        irrid = DFinputCrops.get_value(irriDate,crop)
+        irriq = DFinputCrops.get_value(irriQuan,crop)
+        if (irriq > 0.0 ) :
+            irri.append([irrid, irriq])
+    dictIrri[crop]= irri
+#
+
+dictPlant = {}
+dictHarvest = {}
+for crop in crops :
+    pDate = DFinputCrops.get_value('Seeding',crop)
+    Yield = DFinputCrops.get_value('Yield',crop)
+    tdd = DFinputCrops.get_value('temp degree sum',crop)
+    hDate = DFinputCrops.get_value('Harvest',crop)
+    Residues = DFinputCrops.get_value('Residues',crop)
+    dictPlant[crop]=[pDate, Yield, tdd]
+    dictHarvest[crop]=[hDate,Residues]
+#
+
+print "Fert ", dictFert
+print "Manu ", dictManure
+print "Cut  ", dictCut
+print "Irri ", dictIrri
+print "Plant", dictPlant
+print "Harvest", dictHarvest
+
+
+DFinputFertIrri = pd.read_csv("GR_thess_fert_irri.csv", sep='\t', index_col=0).fillna('NaN')
+#print DFinputFertIrri
+DFinputFertRainfeed = pd.read_csv("GR_thess_fert_rainfeed.csv", sep='\t', index_col=0).fillna('NaN')
+#print DFinputFertRainfeed
+
+DFinputManureIrri = pd.read_csv("GR_thess_manure_irri.csv", sep='\t', index_col=0).fillna('NaN')
+#print DFinputManureIrri
+DFinputManureRainfeed = pd.read_csv("GR_thess_manure_rainfeed.csv", sep='\t', index_col=0).fillna('NaN')
+#print DFinputManureRainfeed
+print
+#print DFinputFertIrri.loc[2010:2010]['R1rate']
+#print DFinputFertIrri.get_value(2010,'R1rate')
+
+
+
+
+cropType = {'sico':'crop','wbar':'crop','wiwh':'crop','cott':'crop','perg':'grass','perg1':'grass' }
+cropInitBiomass = {'sico':100,'wbar':100,'wiwh':100,'cott':200,'perg':200,'perg1':200 }
+
+print cropType
+print cropInitBiomass
+print
+
+startYear = 2010
+
+XMLheader = '''<?xml version="1.0"?>
+<ldndcevent>
+  <global time="2009-01-01" />
+'''
+XMLevent = '''  <event  id="%s" >\n'''
+XMLplant = '''    <event type="plant" time="%s" >
+      <plant name="%s" type="%s" >
+        <crop initialbiomass="%s"  />
+        <params>
+          <par  name="max_tdd" value="3150" />
+          <par  name="optyield" value="4000" />
+        </params>
+      </plant>
+    </event>\n'''
+XMLplantGrass = '''    <event type="plant" time="%s" >
+    <plant name="%s" type="%s" >
+    <grass initialbiomass="%s"  />
+    <params>
+    <par  name="max_tdd" value="6000" />
+    <par  name="optyield" value="1200" />
+    </params>
+    </plant>
+    </event>\n'''
+XMLharvest = '''    <event  type="harvest" time="%s" >
+      <harvest  name="%s" remains="%s" />
+    </event>\n'''
+XMLfertilize = '''    <event  type="fertilize" time="%s" >
+      <fertilize  type="nh4so4" amount="%s" depth="0.05" />
+    </event>\n'''
+XMLmanure = '''    <event type="manure" time="%s" >
+      <manure type="slurry" ph="7.61" c="%f" cn="8.8" availn="0.68" nh4fraction="0.71" donfraction="0.06" no3fraction="0.0" ureafraction="0.23" cellulosefraction="0.6" ligninfraction="0.2" availc = "0.1" />
+    </event>\n'''
+XMLirrigate = '''    <event type="irrigate" time="%s">
+      <irrigate amount="%s" ph="7.0"/>
+    </event>\n'''
+XMLcut = '''    <event type="cut" time="%s" >
+      <cut remains="100.000" />
+    </event>\n'''
+XMLeventEnd = '''  </event>\n'''
+XMLFooter = '''</ldndcevent>\n\n'''
+
+for scenario in Scenarios:
+    print
+    print "Scenario: ", scenario
+    fout = open('mana_'+scenario+'.xml','w')
+    outString = []
+    outText = []
+    outString= XMLheader
+    fout.write(outString)
+    # Rotation
+    print
+    print "Rotations "
+    print
+    for rot in range(1,rotations+1):
+        print "Rotation: ", rot
+        Rcrop = "R"+str(rot)+"crop"
+        Rrate = "R"+str(rot)+"rate"
+        #
+        outString = XMLevent % rot
+        fout.write(outString)
+        # Year
+        previousCrop = 0
+        previousCropName = ''
+        previousCropRemains = 0.0
+        nextCropName = ""
+        for y in range(yearStart,yearStart+years+1):
+            print "\t - Year: " , y ,
+            outString = '<!-- ' + str(y) + '-->\n'
+            fout.write(outString)
+            if scenario == "irri":
+                cropName = DFinputFertIrri.get_value(y,Rcrop)
+            else:
+                cropName = DFinputFertRainfeed.get_value(y,Rcrop)
+            #
+            if ( y+1 <= yearStart+years):
+                if scenario == "irri":
+                    nextCropName = DFinputFertIrri.get_value(y+1,Rcrop)
+                else:
+                    nextCropName = DFinputFertRainfeed.get_value(y+1,Rcrop)
+                #
+            else:
+                nextCropName = ""
+            #
+            print "Crop: ", cropName, " PreviousCrop ", previousCropName, " nextCropName ", nextCropName
+            # Harvest previous Crop ?
+            if (previousCrop):
+                # Harvest previous crop
+                outString = XMLharvest % ( '2010-04-01', previousCropName , previousCropRemains)
+                fout.write(outString)
+                previousCrop = 0
+            #
+            # Fertilize crop
+            #
+            if scenario == "irri":
+                fertRate = DFinputFertIrri.get_value(y,Rrate)
+            else:
+                fertRate = DFinputFertRainfeed.get_value(y,Rrate)
+            #
+            #print "fertRate" , fertRate
+            #
+            if (fertRate > 0.0 ):
+                print "Fert: ",fertRate, " Appl. ", len(dictFert[cropName]),
+                for app in range(0,len(dictFert[cropName])) :
+                    if ( dictFert[cropName][app][0] != 'NaN' ):
+                        fertDate = str(y) + dictFert[cropName][app][0][4:]
+                        fertQuant = dictFert[cropName][app][1]
+                        outString = XMLfertilize % ( fertDate, (float(fertQuant) / 100.0 * fertRate ))
+                        fout.write(outString)
+                    #
+                #
+            #
+            if scenario == "irri":
+                manureRate = DFinputManureIrri.get_value(y,Rrate)
+            else:
+                manureRate = DFinputManureRainfeed.get_value(y,Rrate)
+            #
+            if (manureRate > 0.0 ):
+                print "Manure: ",manureRate," Appl. ", len(dictManure[cropName]),
+                c = float(manureRate) * 8.8
+                for app in range(0,len(dictManure[cropName])) :
+                    if ( dictManure[cropName][app][0] != 'NaN'):
+                        manureDate = str(y) + dictManure[cropName][app][0][4:]
+                        manureQuant = dictManure[cropName][app][1]
+                        outString = XMLmanure % ( manureDate, (float(manureQuant) / 100.0 * c ) )
+                        fout.write(outString)
+                    #
+                #
+            #
+            if ( dictPlant[cropName][0] != 'NaN' ):
+                # Plant next crop
+                if ( cropName == "perg" and previousCropName == "perg" and y != "2010" ) :
+                    print "no planting ",
+                else:
+                    if ( cropName == "WIWH" or cropName == "wiwh" or cropName == "winterwheat" or cropName == "WBAR" or cropName == "wbar" or cropName == "winterbarley" or cropName == "perg" or cropName == "PERG" ) :
+                        plantdatestring = str(y-1) + dictPlant[cropName][0][4:]
+                        print "wintercrop " ,
+                    else:
+                        plantdatestring = str(y) + dictPlant[cropName][0][4:]
+                    #endif
+                    print "Planting ", plantdatestring,
+                    #print plantdatestring
+                    if ( cropName == "perg" or cropName == "perg1" or cropName == "perg2") :
+                        outString = XMLplantGrass % ( plantdatestring, cropName , cropName, cropInitBiomass[cropName])
+                    else:
+                        outString = XMLplant % ( plantdatestring, cropName , cropName, cropInitBiomass[cropName])
+                    #endif
+                    fout.write(outString)
+                #endif alfalfa2
+            if ( dictHarvest[cropName][0] != 'nan' ):
+                if ( cropName == "perg" and nextCropName == "perg") :
+                    print " No harvest this year "
+                else:
+                    if ( cropName == "perg" ) :
+                        harvestdatestring = str(y+1) + dictHarvest[cropName][0][4:]
+                    else:
+                        harvestdatestring = str(y) + dictHarvest[cropName][0][4:]
+                    #
+                    remains = 1.0
+                    print "Harvest ", harvestdatestring,
+                    outString = XMLharvest % ( harvestdatestring, cropName , dictHarvest[cropName][1])
+                    fout.write(outString)
+                    #endif alfalf1
+                    if ( cropName == "wbar" ) :
+                        print "adding perg after wbar for cover crop ",
+                        #print str(y) , dictPlant['perg1'][0][4:]
+                        plantdatestring = str(y) + dictPlant['perg'][0][4:]
+                        print "Planting ", plantdatestring,
+                        #print plantdatestring
+                        outString = XMLplantGrass % ( plantdatestring, 'perg' , 'perg', cropInitBiomass['perg'])
+                        fout.write(outString)
+                        harvestdatestring = str(y+1) + dictHarvest['perg'][0][4:]
+                        print "Harvest ", harvestdatestring,
+                        outString = XMLharvest % ( harvestdatestring, 'perg' , dictHarvest['perg'][1])
+                        fout.write(outString)
+                        print "Irri. Appl. ", len(dictIrri['perg']),
+                        for app in range(0,len(dictIrri['perg'])) :
+                            if ( dictIrri['perg'][app][0] != 'NaN' ):
+                                irriDate = str(y) + dictIrri['perg'][app][0][4:]
+                                irriQuant = dictIrri['perg'][app][1]
+                                outString = XMLirrigate % ( irriDate, irriQuant )
+                                fout.write(outString)
+                            #
+                        #
+                        print "Cut ", len(dictCut['perg']),
+                        for cut in range(0,len(dictCut['perg'])) :
+                            if ( dictCut['perg'][cut] != 'NaN' ):
+                                cutDate = str(y) + dictCut['perg'][cut][4:]
+                                outString = XMLcut % ( cutDate )
+                                fout.write(outString)
+                            #endif
+                        #endfor
+                    #endif
+                #endif
+            # Manure crop, basal and after harvest
+            # Irrigation
+            if len(dictIrri[cropName]) > 0 :
+                print "Irri. Appl. ", len(dictIrri[cropName]),
+                for app in range(0,len(dictIrri[cropName])) :
+                    if ( dictIrri[cropName][app][0] != 'NaN' ):
+                        irriDate = str(y) + dictIrri[cropName][app][0][4:]
+                        irriQuant = dictIrri[cropName][app][1]
+                        outString = XMLirrigate % ( irriDate, irriQuant )
+                        fout.write(outString)
+                    #
+                #
+            #
+            # Cutting Feed crops
+            if (cropName in ['perg', 'alfa', 'alfalfa2'] and len(dictCut[cropName]) > 0 ) :
+                print "Cut ", len(dictCut[cropName]),
+                for cut in range(0,len(dictCut[cropName])) :
+                    if ( dictCut[cropName][cut] != 'NaN' ):
+                        cutDate = str(y) + dictCut[cropName][cut][4:]
+                        outString = XMLcut % ( cutDate )
+                        fout.write(outString)
+                    #endif
+                #endfor
+                # Cuts for the next year until grass is removed
+                for cut in range(0,len(dictCut['perg'])) :
+                    if ( dictCut['perg'][cut] != 'NaN' ):
+                        cutDate = str(y+1) + dictCut['perg'][cut][4:]
+                        outString = XMLcut % ( cutDate )
+                        fout.write(outString)
+                    #endif
+                #endfor
+
+            #endif
+            previousCropName = cropName
+            print
+        #
+        outString = XMLeventEnd
+        fout.write(outString)
+        print
+    #
+    outString=XMLFooter
+    fout.write(outString)
+    fout.close()
+    print
+#
+print
+print " The End"
+
