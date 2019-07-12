@@ -1,6 +1,6 @@
 #/bin/python
 #
-#
+# Version Thessaly 12 July 2019
 #
 import csv
 import pandas as pd
@@ -39,7 +39,9 @@ startYear = 2010
 # DF is a pandas Dataframe
 #DFinputCrops = pd.read_csv("GR_thess_crop.csv", sep='\t', index_col=0).fillna('NaN')
 #DFinputCrops = pd.read_excel("Management-Input-Data_v4.xlsx",sheet_name="ROT",index_col=0, usecols="B:L", skiprows=1, skipfooter=28 ).fillna('NaN')
-DFinputCrops = pd.read_excel("Management-Input-Data_v4.xlsx",sheet_name="Dates",index_col=0, usecols="A:F", dtype={'Crop':str, 'sico':str, 'wiwh':str, 'perg':str, 'cott':str, 'wbar':str}).fillna('nan')
+
+excel_management_file = "Management-Input-Data_v5.xlsx"
+DFinputCrops = pd.read_excel(excel_management_file ,sheet_name="Dates",index_col=0, usecols="A:F", dtype={'Crop':str, 'sico':str, 'wiwh':str, 'perg':str, 'cott':str, 'wbar':str}).fillna('nan')
 print DFinputCrops
 
 dictFert = {}
@@ -150,17 +152,17 @@ print "Harvest", dictHarvest
 
 
 #DFinputFertIrri = pd.read_csv("GR_thess_fert_irri.csv", sep='\t', index_col=0).fillna('NaN')
-DFinputFertIrri = pd.read_excel("Management-Input-Data_v4.xlsx",sheet_name="ROT",index_col=0, usecols="B:L", skiprows=1, skipfooter=28 )
+DFinputFertIrri = pd.read_excel(excel_management_file,sheet_name="ROT",index_col=0, usecols="B:L", skiprows=1, skipfooter=28 )
 print DFinputFertIrri
 #DFinputFertRainfeed = pd.read_csv("GR_thess_fert_rainfeed.csv", sep='\t', index_col=0).fillna('NaN')
-DFinputFertRainfeed = pd.read_excel("Management-Input-Data_v4.xlsx",sheet_name="ROT",index_col=0, usecols="B:L", skiprows=10, skipfooter=19 )
+DFinputFertRainfeed = pd.read_excel(excel_management_file,sheet_name="ROT",index_col=0, usecols="B:L", skiprows=10, skipfooter=19 )
 print DFinputFertRainfeed
 
 #DFinputManureIrri = pd.read_csv("GR_thess_manure_irri.csv", sep='\t', index_col=0).fillna('NaN')
-DFinputManureIrri = pd.read_excel("Management-Input-Data_v4.xlsx",sheet_name="ROT",index_col=0, usecols="B:L", skiprows=20, skipfooter=9 )
+DFinputManureIrri = pd.read_excel(excel_management_file,sheet_name="ROT",index_col=0, usecols="B:L", skiprows=20, skipfooter=9 )
 print DFinputManureIrri
 #DFinputManureRainfeed = pd.read_csv("GR_thess_manure_rainfeed.csv", sep='\t', index_col=0).fillna('NaN')
-DFinputManureRainfeed = pd.read_excel("Management-Input-Data_v4.xlsx",sheet_name="ROT",index_col=0, usecols="B:L", skiprows=29, skipfooter=0 )
+DFinputManureRainfeed = pd.read_excel(excel_management_file,sheet_name="ROT",index_col=0, usecols="B:L", skiprows=29, skipfooter=0 )
 print DFinputManureRainfeed
 print
 #print DFinputFertIrri.loc[2010:2010]['R1rate']
